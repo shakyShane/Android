@@ -45,9 +45,9 @@ class UrlExtractingWebView(
         }
         setWebViewClient(webViewClient)
 
-        if (BuildConfig.DEBUG) {
-            setWebContentsDebuggingEnabled(true)
-        }
+        setWebContentsDebuggingEnabled(true)
+        // if (BuildConfig.DEBUG) {
+        // }
 
         urlExtractor.addUrlExtraction(this) { extractedUrl ->
             urlExtractionListener?.onUrlExtracted(initialUrl, extractedUrl)

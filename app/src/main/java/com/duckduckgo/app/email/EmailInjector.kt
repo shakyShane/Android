@@ -22,6 +22,8 @@ import androidx.annotation.UiThread
 import com.duckduckgo.app.browser.DuckDuckGoUrlDetector
 import com.duckduckgo.app.browser.R
 import com.duckduckgo.app.email.EmailJavascriptInterface.Companion.JAVASCRIPT_INTERFACE_NAME
+import com.duckduckgo.app.email.AutofillJavascriptInterface.Companion.AUTOFILL_INTERFACE_NAME;
+import com.duckduckgo.app.email.AutofillJavascriptInterface.Input
 import com.duckduckgo.app.global.DispatcherProvider
 import com.duckduckgo.feature.toggles.api.FeatureToggle
 import com.duckduckgo.privacy.config.api.Autofill
@@ -36,12 +38,23 @@ interface EmailInjector {
 
     fun addJsInterface(
         webView: WebView,
-        onTooltipShown: () -> Unit
+        onTooltipShown: () -> Unit,
+    )
+
+    fun addAutoFillInterface(
+        webView: WebView,
+        onTooltipShown: (input: Input) -> Unit
     )
 
     fun injectAddressInEmailField(
         webView: WebView,
         alias: String?,
+        url: String?
+    )
+
+    @UiThread fun injectAutofillData(
+        webView: WebView,
+        data: String,
         url: String?
     )
 }
@@ -57,12 +70,22 @@ class EmailInjectorJs(
 
     override fun addJsInterface(
         webView: WebView,
-        onTooltipShown: () -> Unit
+        onTooltipShown: () -> Unit,
     ) {
         // We always add the interface irrespectively if the feature is enabled or not
         webView.addJavascriptInterface(
             EmailJavascriptInterface(emailManager, webView, urlDetector, dispatcherProvider, featureToggle, autofill, onTooltipShown),
             JAVASCRIPT_INTERFACE_NAME
+        )
+    }
+
+    override fun addAutoFillInterface(
+        webView: WebView,
+        onTooltipShown: (input: Input) -> Unit,
+    ) {
+        webView.addJavascriptInterface(
+            AutofillJavascriptInterface(emailManager, webView, urlDetector, dispatcherProvider, featureToggle, autofill, onTooltipShown),
+            AUTOFILL_INTERFACE_NAME
         )
     }
 
@@ -91,6 +114,17 @@ class EmailInjectorJs(
         }
     }
 
+    @UiThread
+    override fun injectAutofillData(
+        webView: WebView,
+        data: String,
+        url: String?
+    ) {
+        url?.let {
+            webView.evaluateJavascript("javascript:${javaScriptInjector.getAutofillFunctions(webView.context, data)}", null)
+        }
+    }
+
     private fun isFeatureEnabled() = featureToggle.isFeatureEnabled(PrivacyFeatureName.AutofillFeatureName, defaultValue = true)
 
     private fun isDuckDuckGoUrl(url: String?): Boolean = (url != null && urlDetector.isDuckDuckGoEmailUrl(url))
@@ -98,6 +132,7 @@ class EmailInjectorJs(
     private class JavaScriptInjector {
         private lateinit var functions: String
         private lateinit var aliasFunctions: String
+        private lateinit var autofillDataFunctions: String
 
         fun getFunctionsJS(): String {
             if (!this::functions.isInitialized) {
@@ -116,6 +151,17 @@ class EmailInjectorJs(
             return aliasFunctions.replace("%s", alias.orEmpty())
         }
 
+        fun getAutofillFunctions(
+            context: Context,
+            json: String
+        ): String {
+            if (!this::autofillDataFunctions.isInitialized) {
+                autofillDataFunctions = context.resources.openRawResource(R.raw.autofill_response).bufferedReader().use { it.readText() }
+            }
+            return autofillDataFunctions.replace("JSON_RESPONSE", json)
+        }
+
+
         fun loadJs(resourceName: String): String = readResource(resourceName).use { it?.readText() }.orEmpty()
 
         private fun readResource(resourceName: String): BufferedReader? {
@@ -123,3 +169,11 @@ class EmailInjectorJs(
         }
     }
 }
+
+
+
+
+
+
+
+

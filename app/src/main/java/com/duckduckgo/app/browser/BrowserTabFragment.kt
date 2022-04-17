@@ -806,6 +806,8 @@ class BrowserTabFragment :
             is Command.ChildTabClosed -> processUriForThirdPartyCookies()
             is Command.CopyAliasToClipboard -> copyAliasToClipboard(it.alias)
             is Command.InjectEmailAddress -> injectEmailAddress(it.address)
+            is Command.InjectAutofillData -> injectAutofillData(it.json)
+            is Command.InjectAutofillDataError -> injectAutofillData(it.json)
             is Command.ShowEmailTooltip -> showEmailTooltip(it.address)
             is Command.EditWithSelectedQuery -> {
                 omnibarTextInput.setText(it.query)
@@ -837,6 +839,12 @@ class BrowserTabFragment :
     private fun injectEmailAddress(alias: String) {
         webView?.let {
             emailInjector.injectAddressInEmailField(it, alias, it.url)
+        }
+    }
+
+    private fun injectAutofillData(data: String) {
+        webView?.let {
+            emailInjector.injectAutofillData(it, data, it.url)
         }
     }
 
@@ -1429,11 +1437,12 @@ class BrowserTabFragment :
             loginDetector.addLoginDetection(it) { viewModel.loginDetected() }
             blobConverterInjector.addJsInterface(it) { url, mimeType -> viewModel.requestFileDownload(url, null, mimeType, true) }
             emailInjector.addJsInterface(it) { viewModel.showEmailTooltip() }
+            emailInjector.addAutoFillInterface(it) { input -> viewModel.showDataTooltip(input) }
         }
 
-        if (appBuildConfig.isDebug) {
-            WebView.setWebContentsDebuggingEnabled(true)
-        }
+        WebView.setWebContentsDebuggingEnabled(true)
+        // if (appBuildConfig.isDebug) {
+        // }
     }
 
     private fun configureDarkThemeSupport(webSettings: WebSettings) {

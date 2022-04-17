@@ -77,6 +77,10 @@ import com.duckduckgo.app.browser.ui.HttpAuthenticationDialogFragment.HttpAuthen
 import com.duckduckgo.app.browser.urlextraction.UrlExtractionListener
 import com.duckduckgo.app.cta.ui.*
 import com.duckduckgo.app.di.AppCoroutineScope
+import com.duckduckgo.app.email.AutofillDataResponse
+import com.duckduckgo.app.email.AutofillError
+import com.duckduckgo.app.email.AutofillJavascriptInterface
+import com.duckduckgo.app.email.Credentials
 import com.duckduckgo.app.email.EmailManager
 import com.duckduckgo.app.fire.fireproofwebsite.data.FireproofWebsiteEntity
 import com.duckduckgo.app.fire.fireproofwebsite.data.FireproofWebsiteRepository
@@ -407,6 +411,8 @@ class BrowserTabViewModel @Inject constructor(
 
         class CopyAliasToClipboard(val alias: String) : Command()
         class InjectEmailAddress(val address: String) : Command()
+        class InjectAutofillData(val json: String) : Command()
+        class InjectAutofillDataError(val json: String) : Command()
         class ShowEmailTooltip(val address: String) : Command()
         sealed class DaxCommand : Command() {
             object FinishTrackerAnimation : DaxCommand()
@@ -2459,6 +2465,21 @@ class BrowserTabViewModel @Inject constructor(
     fun showEmailTooltip() {
         emailManager.getEmailAddress()?.let {
             command.postValue(ShowEmailTooltip(it))
+        }
+    }
+
+    fun showDataTooltip(input: AutofillJavascriptInterface.Input) {
+        // This is where we pretend to open the tooltip using the input above.
+        print(input)
+        when (input.mainType) {
+            "credentials" -> {
+                val resp = AutofillDataResponse(Credentials()).response();
+                command.postValue(InjectAutofillData(resp))
+            }
+            else -> {
+                val error = AutofillError("Cannot autofill that type").response()
+                command.postValue(InjectAutofillDataError(error))
+            }
         }
     }
 
