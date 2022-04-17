@@ -95,9 +95,7 @@ class EmailInjectorJs(
         url: String?
     ) {
         url?.let {
-            if (isDuckDuckGoUrl(url) || (isFeatureEnabled() && !autofill.isAnException(url) && emailManager.isSignedIn())) {
-                webView.evaluateJavascript("javascript:${javaScriptInjector.getFunctionsJS()}", null)
-            }
+            webView.evaluateJavascript("javascript:${javaScriptInjector.getFunctionsJS()}", null)
         }
     }
 
@@ -108,9 +106,7 @@ class EmailInjectorJs(
         url: String?
     ) {
         url?.let {
-            if (isFeatureEnabled() && !autofill.isAnException(url)) {
-                webView.evaluateJavascript("javascript:${javaScriptInjector.getAliasFunctions(webView.context, alias)}", null)
-            }
+            webView.evaluateJavascript("javascript:${javaScriptInjector.getAliasFunctions(webView.context, alias)}", null)
         }
     }
 

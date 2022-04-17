@@ -99,10 +99,12 @@ class AutofillJavascriptInterface(
 
     @JavascriptInterface
     fun getAvailableInputTypes(): String {
-        //language=JSON
+
+        // Return a dynamic list here based on the types of data the suer has
         return """{
   "success": {
-    "email": true
+    "email": true,
+    "credentials": true
   }
 }"""
     }
