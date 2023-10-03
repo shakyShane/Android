@@ -28,6 +28,7 @@ import com.duckduckgo.app.statistics.pixels.Pixel
 import com.duckduckgo.appbuildconfig.api.AppBuildConfig
 import com.duckduckgo.privacy.config.api.ContentBlocking
 import com.duckduckgo.privacy.config.api.UnprotectedTemporary
+import com.duckduckgo.privacy.dashboard.impl.pixels.FakePrivacyDashboardRemoteFeatureFactory
 import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.Command.LaunchReportBrokenSite
 import com.nhaarman.mockitokotlin2.mock
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -71,6 +72,7 @@ class PrivacyDashboardHybridViewModelTest {
         protectionStatusViewStateMapper = AppProtectionStatusViewStateMapper(contentBlocking, unprotectedTemporary),
         privacyDashboardPayloadAdapter = mock(),
         autoconsentStatusViewStateMapper = CookiePromptManagementStatusViewStateMapper(),
+        privacyDashboardRemoteFeature = FakePrivacyDashboardRemoteFeatureFactory.create()
     )
 
     @Test

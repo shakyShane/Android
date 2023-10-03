@@ -23,16 +23,16 @@ import com.duckduckgo.app.global.DispatcherProvider
 import com.duckduckgo.app.global.model.Site
 import com.duckduckgo.app.privacy.db.UserAllowListDao
 import com.duckduckgo.app.statistics.pixels.Pixel
+import com.duckduckgo.app.statistics.pixels.Pixel.PixelParameter
 import com.duckduckgo.browser.api.brokensite.BrokenSiteData
 import com.duckduckgo.di.scopes.ActivityScope
 import com.duckduckgo.privacy.dashboard.impl.pixels.PrivacyDashboardPixels.PRIVACY_DASHBOARD_ALLOWLIST_ADD
 import com.duckduckgo.privacy.dashboard.impl.pixels.PrivacyDashboardPixels.PRIVACY_DASHBOARD_ALLOWLIST_REMOVE
 import com.duckduckgo.privacy.dashboard.impl.pixels.PrivacyDashboardPixels.PRIVACY_DASHBOARD_OPENED
+import com.duckduckgo.privacy.dashboard.impl.pixels.PrivacyDashboardRemoteFeature
 import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.Command.LaunchReportBrokenSite
 import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.Command.OpenSettings
 import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.Command.OpenURL
-import java.util.*
-import javax.inject.Inject
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -43,6 +43,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.*
+import javax.inject.Inject
 
 @ContributesViewModel(ActivityScope::class)
 class PrivacyDashboardHybridViewModel @Inject constructor(
@@ -54,6 +56,7 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
     private val protectionStatusViewStateMapper: ProtectionStatusViewStateMapper,
     private val privacyDashboardPayloadAdapter: PrivacyDashboardPayloadAdapter,
     private val autoconsentStatusViewStateMapper: AutoconsentStatusViewStateMapper,
+    private val privacyDashboardRemoteFeature: PrivacyDashboardRemoteFeature
 ) : ViewModel() {
 
     private val command = Channel<Command>(1, DROP_OLDEST)
@@ -119,6 +122,7 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
         val parentEntity: EntityViewState?,
         val secCertificateViewModels: List<CertificateViewState?> = emptyList(),
         val locale: String = Locale.getDefault().language,
+        val remoteFeatureSettings: RemoteFeatureSettings = RemoteFeatureSettings()
     )
 
     data class CertificateViewState(
@@ -155,6 +159,15 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
         val optoutFailed: Boolean? = false,
         val configurable: Boolean? = true,
         val cosmetic: Boolean? = false,
+    )
+
+    data class RemoteFeatureSettings(
+        val primaryScreen: PrimaryScreenSettings = PrimaryScreenSettings()
+    )
+
+    data class PrimaryScreenSettings(
+        // 'default' or 'highlighted-protections-toggle'
+        val layout: String = "default"
     )
 
     val viewState = MutableStateFlow<ViewState?>(null)
@@ -204,12 +217,14 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
 
         viewModelScope.launch(dispatcher.io()) {
             currentViewState().siteViewState.domain?.let { domain ->
+                val inexp = privacyDashboardRemoteFeature.protectionToggleHighlightActive().isEnabled();
+                val params = mapOf(PixelParameter.PROTECTION_TOGGLE_EXP to inexp.toString())
                 if (enabled) {
                     userAllowListDao.delete(domain)
-                    pixel.fire(PRIVACY_DASHBOARD_ALLOWLIST_REMOVE)
+                    pixel.fire(PRIVACY_DASHBOARD_ALLOWLIST_REMOVE, params)
                 } else {
                     userAllowListDao.insert(domain)
-                    pixel.fire(PRIVACY_DASHBOARD_ALLOWLIST_ADD)
+                    pixel.fire(PRIVACY_DASHBOARD_ALLOWLIST_ADD, params)
                 }
             }
             delay(CLOSE_DASHBOARD_ON_INTERACTION_DELAY)
