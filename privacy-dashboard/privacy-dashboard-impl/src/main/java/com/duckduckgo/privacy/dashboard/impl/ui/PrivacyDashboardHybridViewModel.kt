@@ -169,9 +169,9 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
                 return RemoteFeatureSettingsViewState(
                     primaryScreen = PrimaryScreenSettings(
                         layout = if (settings.protectionToggleHighlightActive().isEnabled()) {
-                            "highlighted-protections-toggle"
+                            LayoutType.HIGHLIGHTED_PROTECTIONS_TOGGLE.value
                         } else {
-                            "default"
+                            LayoutType.DEFAULT.value
                         }
                     )
                 )
@@ -179,9 +179,13 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
         }
     }
 
+    enum class LayoutType(val value: String) {
+        DEFAULT("default"),
+        HIGHLIGHTED_PROTECTIONS_TOGGLE("highlighted-protections-toggle");
+    }
+
     data class PrimaryScreenSettings(
-        // 'default' or 'highlighted-protections-toggle'
-        val layout: String = "default"
+        val layout: String = LayoutType.DEFAULT.value
     )
 
     val viewState = MutableStateFlow<ViewState?>(null)
