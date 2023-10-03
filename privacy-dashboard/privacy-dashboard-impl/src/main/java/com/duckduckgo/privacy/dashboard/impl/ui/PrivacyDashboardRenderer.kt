@@ -20,7 +20,7 @@ import android.webkit.WebView
 import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.CookiePromptManagementState
 import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.EntityViewState
 import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.ProtectionStatusViewState
-import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.RemoteFeatureSettings
+import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.RemoteFeatureSettingsViewState
 import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.RequestDataViewState
 import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.SiteViewState
 import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.ViewState
@@ -75,8 +75,8 @@ class PrivacyDashboardRenderer(
         webView.evaluateJavascript("javascript:onChangeConsentManaged($cookiePromptManagementStatusJson);", null)
 
         // remote feature settings
-        val remoteFeatureSettingsAdapter = moshi.adapter(RemoteFeatureSettings::class.java)
-        val remoteFeatureSettingsJson = remoteFeatureSettingsAdapter.toJson(viewState.siteViewState.remoteFeatureSettings)
+        val remoteFeatureSettingsAdapter = moshi.adapter(RemoteFeatureSettingsViewState::class.java)
+        val remoteFeatureSettingsJson = remoteFeatureSettingsAdapter.toJson(viewState.remoteFeatureSettings)
         webView.evaluateJavascript("javascript:onChangeFeatureSettings($remoteFeatureSettingsJson);", null)
 
         if (viewState.siteViewState.locale != lastSeenPrivacyDashboardViewState?.siteViewState?.locale) {

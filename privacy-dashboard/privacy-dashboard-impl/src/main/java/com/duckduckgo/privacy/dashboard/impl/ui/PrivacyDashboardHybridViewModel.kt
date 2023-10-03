@@ -73,6 +73,7 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
         val requestData: RequestDataViewState,
         val protectionStatus: ProtectionStatusViewState,
         val cookiePromptManagementStatus: CookiePromptManagementState,
+        val remoteFeatureSettings: RemoteFeatureSettingsViewState = RemoteFeatureSettingsViewState()
     )
 
     data class ProtectionStatusViewState(
@@ -121,8 +122,7 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
         val upgradedHttps: Boolean,
         val parentEntity: EntityViewState?,
         val secCertificateViewModels: List<CertificateViewState?> = emptyList(),
-        val locale: String = Locale.getDefault().language,
-        val remoteFeatureSettings: RemoteFeatureSettings = RemoteFeatureSettings()
+        val locale: String = Locale.getDefault().language
     )
 
     data class CertificateViewState(
@@ -161,9 +161,23 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
         val cosmetic: Boolean? = false,
     )
 
-    data class RemoteFeatureSettings(
+    data class RemoteFeatureSettingsViewState(
         val primaryScreen: PrimaryScreenSettings = PrimaryScreenSettings()
-    )
+    ) {
+        companion object {
+            fun fromSettings(settings: PrivacyDashboardRemoteFeature): RemoteFeatureSettingsViewState {
+                return RemoteFeatureSettingsViewState(
+                    primaryScreen = PrimaryScreenSettings(
+                        layout = if (settings.protectionToggleHighlightActive().isEnabled()) {
+                            "highlighted-protections-toggle"
+                        } else {
+                            "default"
+                        }
+                    )
+                )
+            }
+        }
+    }
 
     data class PrimaryScreenSettings(
         // 'default' or 'highlighted-protections-toggle'
@@ -188,7 +202,10 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
 
     fun onReportBrokenSiteSelected() {
         viewModelScope.launch(dispatcher.io()) {
-            command.send(LaunchReportBrokenSite(BrokenSiteData.fromSite(site)))
+            // when the broken site form is opened from the dashboard, send
+            // along a list of params to be sent with the `m_bsr` pixel
+            val siteData = BrokenSiteData.fromSite(site, pixelParamList());
+            command.send(LaunchReportBrokenSite(siteData))
         }
     }
 
@@ -199,6 +216,18 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
         viewModelScope.launch { updateSite(site) }
     }
 
+    private fun pixelParamList(): List<String> {
+        // if protectionToggleHighlightActive is not enabled, send no params
+        if (!privacyDashboardRemoteFeature.protectionToggleHighlightActive().isEnabled()) return emptyList();
+
+        // otherwise, send the pixel param
+        return listOf(PixelParameter.PROTECTION_TOGGLE_EXP)
+    }
+
+    private fun pixelParamMap(): Map<String, String> {
+        return pixelParamList().associateWith { true.toString() }
+    }
+
     private suspend fun updateSite(site: Site) {
         withContext(dispatcher.main()) {
             viewState.emit(
@@ -207,6 +236,7 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
                     requestData = requestDataViewStateMapper.mapFromSite(site),
                     protectionStatus = protectionStatusViewStateMapper.mapFromSite(site),
                     cookiePromptManagementStatus = autoconsentStatusViewStateMapper.mapFromSite(site),
+                    remoteFeatureSettings = RemoteFeatureSettingsViewState.fromSettings(privacyDashboardRemoteFeature)
                 ),
             )
         }
@@ -217,14 +247,13 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
 
         viewModelScope.launch(dispatcher.io()) {
             currentViewState().siteViewState.domain?.let { domain ->
-                val inexp = privacyDashboardRemoteFeature.protectionToggleHighlightActive().isEnabled();
-                val params = mapOf(PixelParameter.PROTECTION_TOGGLE_EXP to inexp.toString())
+                val pixelParams = pixelParamMap();
                 if (enabled) {
                     userAllowListDao.delete(domain)
-                    pixel.fire(PRIVACY_DASHBOARD_ALLOWLIST_REMOVE, params)
+                    pixel.fire(PRIVACY_DASHBOARD_ALLOWLIST_REMOVE, pixelParams)
                 } else {
                     userAllowListDao.insert(domain)
-                    pixel.fire(PRIVACY_DASHBOARD_ALLOWLIST_ADD, params)
+                    pixel.fire(PRIVACY_DASHBOARD_ALLOWLIST_ADD, pixelParams)
                 }
             }
             delay(CLOSE_DASHBOARD_ON_INTERACTION_DELAY)
