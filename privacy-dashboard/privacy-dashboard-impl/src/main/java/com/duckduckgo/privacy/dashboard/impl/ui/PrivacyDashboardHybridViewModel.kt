@@ -33,8 +33,6 @@ import com.duckduckgo.privacy.dashboard.impl.pixels.PrivacyDashboardRemoteFeatur
 import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.Command.LaunchReportBrokenSite
 import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.Command.OpenSettings
 import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.Command.OpenURL
-import java.util.*
-import javax.inject.Inject
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -45,6 +43,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.*
+import javax.inject.Inject
 
 @ContributesViewModel(ActivityScope::class)
 class PrivacyDashboardHybridViewModel @Inject constructor(
@@ -166,7 +166,7 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
     ) {
         companion object {
             fun fromSettings(settings: PrivacyDashboardRemoteFeature): RemoteFeatureSettingsViewState {
-                val layout = if (settings.protectionToggleHighlight().isEnabled()) {
+                val layout = if (settings.highlightedProtectionsToggle().isEnabled()) {
                     LayoutType.HIGHLIGHTED_PROTECTIONS_TOGGLE.value
                 } else {
                     LayoutType.DEFAULT.value
@@ -229,10 +229,10 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
         if (!isEnglish) return emptyList()
 
         // if protectionToggleHighlightActive is not enabled, send no params
-        if (!privacyDashboardRemoteFeature.protectionToggleHighlight().isEnabled()) return emptyList()
+        if (!privacyDashboardRemoteFeature.highlightedProtectionsToggle().isEnabled()) return emptyList()
 
         // otherwise, send the pixel param
-        return listOf(PixelParameter.PROTECTION_TOGGLE_EXP)
+        return listOf(PixelParameter.DASHBOARD_TOGGLE_HIGHLIGHT)
     }
 
     private fun pixelParamMap(): Map<String, String> {

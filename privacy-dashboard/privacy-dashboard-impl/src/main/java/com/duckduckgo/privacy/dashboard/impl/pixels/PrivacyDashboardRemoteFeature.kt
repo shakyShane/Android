@@ -29,5 +29,5 @@ interface PrivacyDashboardRemoteFeature {
     fun self(): Toggle
 
     @Toggle.DefaultValue(false)
-    fun protectionToggleHighlight(): Toggle
+    fun highlightedProtectionsToggle(): Toggle
 }

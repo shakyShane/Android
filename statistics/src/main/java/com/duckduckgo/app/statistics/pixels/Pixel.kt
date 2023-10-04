@@ -21,8 +21,8 @@ import com.duckduckgo.app.statistics.api.PixelSender
 import com.duckduckgo.di.scopes.AppScope
 import com.squareup.anvil.annotations.ContributesBinding
 import io.reactivex.schedulers.Schedulers
-import javax.inject.Inject
 import timber.log.Timber
+import javax.inject.Inject
 
 interface Pixel {
 
@@ -60,7 +60,7 @@ interface Pixel {
         const val MESSAGE_SHOWN = "message"
         const val ACTION_SUCCESS = "success"
         const val SYNC = "sync"
-        const val PROTECTION_TOGGLE_EXP = "PROTECTION_TOGGLE_EXP"
+        const val DASHBOARD_TOGGLE_HIGHLIGHT = "dashboard_highlighted_toggle"
     }
 
     object PixelValues {
