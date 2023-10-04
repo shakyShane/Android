@@ -33,6 +33,8 @@ import com.duckduckgo.privacy.dashboard.impl.pixels.PrivacyDashboardRemoteFeatur
 import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.Command.LaunchReportBrokenSite
 import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.Command.OpenSettings
 import com.duckduckgo.privacy.dashboard.impl.ui.PrivacyDashboardHybridViewModel.Command.OpenURL
+import java.util.*
+import javax.inject.Inject
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -43,8 +45,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.util.*
-import javax.inject.Inject
 
 @ContributesViewModel(ActivityScope::class)
 class PrivacyDashboardHybridViewModel @Inject constructor(
@@ -56,7 +56,7 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
     private val protectionStatusViewStateMapper: ProtectionStatusViewStateMapper,
     private val privacyDashboardPayloadAdapter: PrivacyDashboardPayloadAdapter,
     private val autoconsentStatusViewStateMapper: AutoconsentStatusViewStateMapper,
-    private val privacyDashboardRemoteFeature: PrivacyDashboardRemoteFeature
+    private val privacyDashboardRemoteFeature: PrivacyDashboardRemoteFeature,
 ) : ViewModel() {
 
     private val command = Channel<Command>(1, DROP_OLDEST)
@@ -73,7 +73,7 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
         val requestData: RequestDataViewState,
         val protectionStatus: ProtectionStatusViewState,
         val cookiePromptManagementStatus: CookiePromptManagementState,
-        val remoteFeatureSettings: RemoteFeatureSettingsViewState = RemoteFeatureSettingsViewState()
+        val remoteFeatureSettings: RemoteFeatureSettingsViewState = RemoteFeatureSettingsViewState(),
     )
 
     data class ProtectionStatusViewState(
@@ -122,7 +122,7 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
         val upgradedHttps: Boolean,
         val parentEntity: EntityViewState?,
         val secCertificateViewModels: List<CertificateViewState?> = emptyList(),
-        val locale: String = Locale.getDefault().language
+        val locale: String = Locale.getDefault().language,
     )
 
     data class CertificateViewState(
@@ -162,18 +162,20 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
     )
 
     data class RemoteFeatureSettingsViewState(
-        val primaryScreen: PrimaryScreenSettings = PrimaryScreenSettings()
+        val primaryScreen: PrimaryScreenSettings = PrimaryScreenSettings(),
     ) {
         companion object {
             fun fromSettings(settings: PrivacyDashboardRemoteFeature): RemoteFeatureSettingsViewState {
+                val layout = if (settings.protectionToggleHighlight().isEnabled()) {
+                    LayoutType.HIGHLIGHTED_PROTECTIONS_TOGGLE.value
+                } else {
+                    LayoutType.DEFAULT.value
+                }
+
                 return RemoteFeatureSettingsViewState(
                     primaryScreen = PrimaryScreenSettings(
-                        layout = if (settings.protectionToggleHighlightActive().isEnabled()) {
-                            LayoutType.HIGHLIGHTED_PROTECTIONS_TOGGLE.value
-                        } else {
-                            LayoutType.DEFAULT.value
-                        }
-                    )
+                        layout = layout,
+                    ),
                 )
             }
         }
@@ -181,11 +183,12 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
 
     enum class LayoutType(val value: String) {
         DEFAULT("default"),
-        HIGHLIGHTED_PROTECTIONS_TOGGLE("highlighted-protections-toggle");
+        HIGHLIGHTED_PROTECTIONS_TOGGLE("highlighted-protections-toggle"),
+        ;
     }
 
     data class PrimaryScreenSettings(
-        val layout: String = LayoutType.DEFAULT.value
+        val layout: String = LayoutType.DEFAULT.value,
     )
 
     val viewState = MutableStateFlow<ViewState?>(null)
@@ -208,7 +211,7 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
         viewModelScope.launch(dispatcher.io()) {
             // when the broken site form is opened from the dashboard, send
             // along a list of params to be sent with the `m_bsr` pixel
-            val siteData = BrokenSiteData.fromSite(site, pixelParamList());
+            val siteData = BrokenSiteData.fromSite(site, pixelParamList())
             command.send(LaunchReportBrokenSite(siteData))
         }
     }
@@ -221,8 +224,12 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
     }
 
     private fun pixelParamList(): List<String> {
+        // we're only running for english speaking users initially.
+        val isEnglish: Boolean = Locale.getDefault().language == Locale.ENGLISH.language
+        if (!isEnglish) return emptyList()
+
         // if protectionToggleHighlightActive is not enabled, send no params
-        if (!privacyDashboardRemoteFeature.protectionToggleHighlightActive().isEnabled()) return emptyList();
+        if (!privacyDashboardRemoteFeature.protectionToggleHighlight().isEnabled()) return emptyList()
 
         // otherwise, send the pixel param
         return listOf(PixelParameter.PROTECTION_TOGGLE_EXP)
@@ -240,7 +247,7 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
                     requestData = requestDataViewStateMapper.mapFromSite(site),
                     protectionStatus = protectionStatusViewStateMapper.mapFromSite(site),
                     cookiePromptManagementStatus = autoconsentStatusViewStateMapper.mapFromSite(site),
-                    remoteFeatureSettings = RemoteFeatureSettingsViewState.fromSettings(privacyDashboardRemoteFeature)
+                    remoteFeatureSettings = RemoteFeatureSettingsViewState.fromSettings(privacyDashboardRemoteFeature),
                 ),
             )
         }
@@ -251,7 +258,7 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
 
         viewModelScope.launch(dispatcher.io()) {
             currentViewState().siteViewState.domain?.let { domain ->
-                val pixelParams = pixelParamMap();
+                val pixelParams = pixelParamMap()
                 if (enabled) {
                     userAllowListDao.delete(domain)
                     pixel.fire(PRIVACY_DASHBOARD_ALLOWLIST_REMOVE, pixelParams)

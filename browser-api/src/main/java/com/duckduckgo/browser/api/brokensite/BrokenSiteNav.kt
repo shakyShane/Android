@@ -60,7 +60,7 @@ data class BrokenSiteData(
                 consentManaged = consentManaged,
                 consentOptOutFailed = consentOptOutFailed,
                 consentSelfTestFailed = consentSelfTestFailed,
-                params = params
+                params = params,
             )
         }
     }

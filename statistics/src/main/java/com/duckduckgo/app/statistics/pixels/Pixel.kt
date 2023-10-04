@@ -21,8 +21,8 @@ import com.duckduckgo.app.statistics.api.PixelSender
 import com.duckduckgo.di.scopes.AppScope
 import com.squareup.anvil.annotations.ContributesBinding
 import io.reactivex.schedulers.Schedulers
-import timber.log.Timber
 import javax.inject.Inject
+import timber.log.Timber
 
 interface Pixel {
 

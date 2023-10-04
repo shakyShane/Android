@@ -91,7 +91,7 @@ class BrokenSiteViewModel @Inject constructor(
         consentManaged: Boolean,
         consentOptOutFailed: Boolean,
         consentSelfTestFailed: Boolean,
-        params: Array<out String>
+        params: Array<out String>,
     ) {
         this.url = url
         this.blockedTrackers = blockedTrackers
@@ -140,7 +140,7 @@ class BrokenSiteViewModel @Inject constructor(
             brokenSiteSender.submitBrokenSiteFeedback(brokenSite)
 
             val pixelParams = mutableMapOf(
-                Pixel.PixelParameter.URL to brokenSite.siteUrl
+                Pixel.PixelParameter.URL to brokenSite.siteUrl,
             )
 
             // add any additional params - for example, from the privacy dashboard

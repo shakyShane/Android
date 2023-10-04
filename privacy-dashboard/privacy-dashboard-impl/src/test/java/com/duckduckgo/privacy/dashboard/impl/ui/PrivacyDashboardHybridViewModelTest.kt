@@ -72,7 +72,7 @@ class PrivacyDashboardHybridViewModelTest {
         protectionStatusViewStateMapper = AppProtectionStatusViewStateMapper(contentBlocking, unprotectedTemporary),
         privacyDashboardPayloadAdapter = mock(),
         autoconsentStatusViewStateMapper = CookiePromptManagementStatusViewStateMapper(),
-        privacyDashboardRemoteFeature = FakePrivacyDashboardRemoteFeatureFactory.create()
+        privacyDashboardRemoteFeature = FakePrivacyDashboardRemoteFeatureFactory.create(),
     )
 
     @Test
