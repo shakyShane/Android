@@ -260,6 +260,33 @@ class BrokenSiteViewModelTest {
     }
 
     @Test
+    fun whenCanSubmitBrokenSiteAndUrlNotNullAndSubmitPressedThenReportAndPixelSubmittedWithParams() {
+        whenever(mockAmpLinks.lastAmpLinkInfo).thenReturn(AmpLinkInfo(trackingUrl, url))
+
+        testee.setInitialBrokenSite(
+            url = url,
+            blockedTrackers = "",
+            surrogates = "",
+            upgradedHttps = false,
+            urlParametersRemoved = false,
+            consentManaged = false,
+            consentOptOutFailed = false,
+            consentSelfTestFailed = false,
+            params = arrayOf("dashboard_highlighted_toggle"),
+        )
+        selectAndAcceptCategory()
+        testee.onSubmitPressed("webViewVersion", "description")
+
+        verify(mockPixel).fire(
+            AppPixelName.BROKEN_SITE_REPORTED,
+            mapOf(
+                "url" to trackingUrl,
+                "dashboard_highlighted_toggle" to true.toString(),
+            ),
+        )
+    }
+
+    @Test
     fun whenUrlIsDesktopThenSendDesktopParameter() {
         testee.setInitialBrokenSite(
             url = url,
