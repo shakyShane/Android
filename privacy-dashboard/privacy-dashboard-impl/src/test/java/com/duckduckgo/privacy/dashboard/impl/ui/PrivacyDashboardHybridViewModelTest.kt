@@ -64,7 +64,7 @@ class PrivacyDashboardHybridViewModelTest {
     private val unprotectedTemporary = mock<UnprotectedTemporary>()
 
     private val pixel = mock<Pixel>()
-    private val mockRemoteFeatures = FakePrivacyDashboardRemoteFeatureFactory.create();
+    private val mockRemoteFeatures = FakePrivacyDashboardRemoteFeatureFactory.create()
 
     private val testee: PrivacyDashboardHybridViewModel by lazy {
         PrivacyDashboardHybridViewModel(
@@ -117,7 +117,7 @@ class PrivacyDashboardHybridViewModelTest {
 
     @Test
     fun whenOnPrivacyProtectionClickedThenUpdateViewStateWithParam() = runTest {
-        mockRemoteFeatures.highlightedProtectionsToggle().setEnabled(Toggle.State(enable = true));
+        mockRemoteFeatures.highlightedProtectionsToggle().setEnabled(Toggle.State(enable = true))
 
         testee.onSiteChanged(site(siteAllowed = false))
         testee.onPrivacyProtectionsClicked(enabled = false)
