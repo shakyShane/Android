@@ -163,23 +163,7 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
 
     data class RemoteFeatureSettingsViewState(
         val primaryScreen: PrimaryScreenSettings = PrimaryScreenSettings(),
-    ) {
-        companion object {
-            fun fromSettings(settings: PrivacyDashboardRemoteFeature): RemoteFeatureSettingsViewState {
-                val layout = if (settings.highlightedProtectionsToggle().isEnabled()) {
-                    LayoutType.HIGHLIGHTED_PROTECTIONS_TOGGLE.value
-                } else {
-                    LayoutType.DEFAULT.value
-                }
-
-                return RemoteFeatureSettingsViewState(
-                    primaryScreen = PrimaryScreenSettings(
-                        layout = layout,
-                    ),
-                )
-            }
-        }
-    }
+    )
 
     enum class LayoutType(val value: String) {
         DEFAULT("default"),
@@ -240,6 +224,19 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
     }
 
     private suspend fun updateSite(site: Site) {
+        suspend fun createRemoteFeatureSettingsViewState() = withContext(dispatcher.io()) {
+            val layout = if (privacyDashboardRemoteFeature.highlightedProtectionsToggle().isEnabled()) {
+                LayoutType.HIGHLIGHTED_PROTECTIONS_TOGGLE.value
+            } else {
+                LayoutType.DEFAULT.value
+            }
+            return@withContext RemoteFeatureSettingsViewState(
+                primaryScreen = PrimaryScreenSettings(
+                    layout = layout,
+                ),
+            )
+        }
+        val remoteFeatureSettings = createRemoteFeatureSettingsViewState()
         withContext(dispatcher.main()) {
             viewState.emit(
                 ViewState(
@@ -247,7 +244,7 @@ class PrivacyDashboardHybridViewModel @Inject constructor(
                     requestData = requestDataViewStateMapper.mapFromSite(site),
                     protectionStatus = protectionStatusViewStateMapper.mapFromSite(site),
                     cookiePromptManagementStatus = autoconsentStatusViewStateMapper.mapFromSite(site),
-                    remoteFeatureSettings = RemoteFeatureSettingsViewState.fromSettings(privacyDashboardRemoteFeature),
+                    remoteFeatureSettings = remoteFeatureSettings,
                 ),
             )
         }

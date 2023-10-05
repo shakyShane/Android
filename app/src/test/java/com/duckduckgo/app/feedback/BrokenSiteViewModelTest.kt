@@ -121,6 +121,7 @@ class BrokenSiteViewModelTest {
             consentManaged = false,
             consentOptOutFailed = false,
             consentSelfTestFailed = false,
+            params = emptyArray(),
         )
         selectAndAcceptCategory()
         testee.onSubmitPressed("webViewVersion", "description")
@@ -157,6 +158,7 @@ class BrokenSiteViewModelTest {
             consentManaged = false,
             consentOptOutFailed = false,
             consentSelfTestFailed = false,
+            params = emptyArray(),
         )
         selectAndAcceptCategory()
         testee.onSubmitPressed("webViewVersion", "description")
@@ -194,6 +196,7 @@ class BrokenSiteViewModelTest {
             consentManaged = false,
             consentOptOutFailed = false,
             consentSelfTestFailed = false,
+            params = emptyArray(),
         )
         selectAndAcceptCategory()
         testee.onSubmitPressed("webViewVersion", "description")
@@ -231,6 +234,7 @@ class BrokenSiteViewModelTest {
             consentManaged = false,
             consentOptOutFailed = false,
             consentSelfTestFailed = false,
+            params = emptyArray(),
         )
         selectAndAcceptCategory()
         testee.onSubmitPressed("webViewVersion", "description")
@@ -266,6 +270,7 @@ class BrokenSiteViewModelTest {
             consentManaged = false,
             consentOptOutFailed = false,
             consentSelfTestFailed = false,
+            params = emptyArray(),
         )
         selectAndAcceptCategory()
 
@@ -285,6 +290,7 @@ class BrokenSiteViewModelTest {
             consentManaged = false,
             consentOptOutFailed = false,
             consentSelfTestFailed = false,
+            params = emptyArray(),
         )
         selectAndAcceptCategory()
 
@@ -305,6 +311,7 @@ class BrokenSiteViewModelTest {
             consentManaged = false,
             consentOptOutFailed = false,
             consentSelfTestFailed = false,
+            params = emptyArray(),
         )
         selectAndAcceptCategory(categoryIndex)
 
@@ -324,6 +331,7 @@ class BrokenSiteViewModelTest {
             consentManaged = false,
             consentOptOutFailed = false,
             consentSelfTestFailed = false,
+            params = emptyArray(),
         )
         selectAndAcceptCategory(0)
         testee.onCategoryIndexChanged(1)
@@ -343,6 +351,7 @@ class BrokenSiteViewModelTest {
             consentManaged = false,
             consentOptOutFailed = false,
             consentSelfTestFailed = false,
+            params = emptyArray(),
         )
         testee.onCategoryIndexChanged(1)
         testee.onCategorySelectionCancelled()
