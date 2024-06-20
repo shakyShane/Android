@@ -250,6 +250,9 @@ dependencies {
     implementation project(':content-scope-scripts-api')
     implementation project(':content-scope-scripts-impl')
 
+    implementation project(':css-messaging-api')
+    implementation project(':css-messaging-impl')
+
     implementation project(':network-protection-api')
     implementation project(':network-protection-impl')
     internalImplementation project(':network-protection-internal')
